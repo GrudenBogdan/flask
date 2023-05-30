@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=
+    , initial-scale=1.0">
+    <title>Log-In</title>
+    <head>
+        <link rel="stylesheet" type="text/css" href="../static/styles/style.css"/>
+     </head>
+</head>
+<body> 
+    <div class="login">
+        <form id="login" method="POST" action="/login">
+            <label><b>
+                Username
+            </b></label>
+            <input type="text" name="username" id="username" placeholder="Username">
+            <br><br>
+            <label><b>Password</b></label>
+            <input type="Password" name="password" id="password" placeholder="Password">
+            <br><br>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            <button type="submit">Login</button>
+            <br><br>
+            <input type="checkbox" id="check">
+            <span>Remember me</span>
+            <br><br>
+            <a href="/forgot-password">Forgot Password</a>
+            <a href="/register">Create new account</a>
+        </form>
+    </div>
+</body>
+</html>

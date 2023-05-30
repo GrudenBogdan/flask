@@ -1,0 +1,18 @@
+body{
+    background: url("background.jpg");
+    background-size: 100%;
+}
+a{
+    color:white;
+    font-size: 20px;
+}
+
+h1 {
+    color:white;
+    font-size: 50px;
+    text-align: center;
+}
+a:visited { text-decoration: none; color:rgb(255, 255, 255); }
+a:hover { text-decoration: none; color:rgb(255, 255, 255); }
+a:focus { text-decoration: none; color:rgb(255, 255, 255); }
+a:hover, a:active { text-decoration: none; color:rgb(255, 255, 255) }
