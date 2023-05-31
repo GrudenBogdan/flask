@@ -5,13 +5,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 # Inițializarea aplicației Flask și configurarea bazei de date
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/Users/PixelQA/PycharmProjects/LoginTemplate/flask/users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///D:/Flask/users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['WHOOSH_BASE'] = 'whoosh'
-app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///C:/Users/PixelQA/PycharmProjects/LoginTemplate/flask/post_register.db'}
+app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///D:/Flask/post_register.db'}
 db = SQLAlchemy(app)
 
-# Definirea claselor de model
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
