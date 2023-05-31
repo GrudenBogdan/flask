@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../static/styles/allposts.css"/>
+
+</form>
+    <title>All Posts</title>
+</head>
+<body>
+    <h1>All Posts</h1>
+    <div class="posts">
+        {% for post in allPosts %}
+        <div class="post">
+            <div class="post-header">
+                <p class="post-title">{{ post.title }}</p>
+                <p class="post-author">By {{ post.author }}</p>
+            </div>
+            <div class="post-content">
+                <p>{{ post.content }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

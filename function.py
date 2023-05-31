@@ -1,79 +1,109 @@
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
 
-
+# Inițializarea aplicației Flask și configurarea bazei de date
 app = Flask(__name__)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  #Secret key pentru Flash(Altfel nu primim message)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///D:/Flask/users_register.db'  # Cream SQLite database file
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True #Activeaza urmarirea modificarilor prin SQLLite database.
-db = SQLAlchemy(app) #Leaga data de baze cu aplicatia.
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/Users/PixelQA/PycharmProjects/LoginTemplate/flask/users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['WHOOSH_BASE'] = 'whoosh'
+app.config['SQLALCHEMY_BINDS'] = {'two': 'sqlite:///C:/Users/PixelQA/PycharmProjects/LoginTemplate/flask/post_register.db'}
+db = SQLAlchemy(app)
 
-# Cream modelul datei de baze (id = int(track numarul de utilizatori, name = username countului, password = parola, email = email.))
+# Definirea claselor de model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     password = db.Column(db.String(100))
     email = db.Column(db.String(100))
 
-# Cand deschidem site-ul ne arata direct login page-ul.
-@app.route('/')
-def home():
-    return render_template('login.html')
+class Two(db.Model):
+    __bind_key__ = 'two'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(50))
+    author = db.Column(db.String(100))
+    content = db.Column(db.String(2000))
 
-# Apasand register end-point-ul este registerhtml.
-@app.route('/register')
-def new_account():
-    return render_template('registerform.html')
+# Definirea funcțiilor ajutătoare
+def post_exists(title):
+    post = Two.query.filter_by(title=title).first()
+    return post is not None
 
-# Primeste un username si o parola ca params si verifica daca exista deja in db.
 def credentiale(username, password):
     user = User.query.filter_by(name=username).first()
-    return user is not None
+    if user and check_password_hash(user.password, password):
+        return True
+    return False
 
-# Aici avem codul de login, daca username, password exista in database le luam cu request.form.get si ne da redirect catre dashboard, daca nu 
+# Definirea rutelor și funcțiilor asociate
+@app.route('/')
+def home():
+    return render_template('auth/login.html')
+
+@app.route('/register')
+def new_account():
+    return render_template('auth/registerform.html')
+
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form.get('username')
     password = request.form.get('password')
-    # Daca credentialele se gasesc in db, ne redirecioaneaza catre dashnboard.html
-    if credentiale(username, password):
-        session['user'] = username # Va crea o sesiunea pentru user.
+    user = User.query.filter_by(name=username).first()
+    if user and check_password_hash(user.password, password):
+        session['user'] = username
         return redirect('/dashboard')
-    else: #Daca nu, primim eroare de mai jos, care a fost implementanta in html.
-        return render_template('login.html', error='Invalid username or password.')
+    else:
+        return render_template('auth/login.html', error='Invalid username or password.')
 
-# Codul pentru pagina de register.
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.form.get('username') #Primim de la user, username, pass, email.
+    username = request.form.get('username')
     password = request.form.get('password')
     email = request.form.get('email')
-    if User.query.filter_by(name=username).first() is not None: #Daca user-ul exista in db afisam eroarea.
-        return render_template('registerform.html', error='Username already exists.')
-    
-    # Daca nu, in database, folosind variabila new_user adaugam unul nou
-    new_user = User(name=username, password=password, email=email)
-    db.session.add(new_user) #Adaugam.
-    db.session.commit() #Aplicam modificarile asupra bazei de date.
-    flash('Account created, return to the LOG IN page') #Afisam acest mesaj, folosind flash pe care il importam din flask si la care ne terbuie un secret.key.
-    return render_template('registerform.html') 
+    if User.query.filter_by(name=username).first() is not None:
+        return render_template('auth/registerform.html', error='Username already exists.')
+    password_hash = generate_password_hash(password)
+    new_user = User(name=username, password=password_hash, email=email)
+    db.session.add(new_user)
+    db.session.commit()
+    flash('Account created, return to the LOG IN page')
+    return render_template('auth/registerform.html')
 
 @app.route('/dashboard')
 def dashboard():
     if 'user' in session:
-        user = session['user'] # Salvam informatii despre user, in cazul nostru username-ul sa putem sa ii dam display in nav-bar.
-        return render_template('dashboard.html', user=user)
+        user = session['user']
+        return render_template('base.html', user=user)
     else:
         return redirect('/login')
-    
-# Rutele catre fiecare pagina, utlizand template-urile din html.
+
+@app.route('/viewposts')
+def viewposts():
+    allPosts = Two.query.all()
+    return render_template('blog/allposts.html', allPosts=allPosts)
+
+@app.route('/addapost', methods=['POST'])
+def register_post():
+    title = request.form.get('title')
+    author = request.form.get('author')
+    content = request.form.get('content')
+    if post_exists(title):
+        flash('Post with the same title already exists.', 'error')
+        return redirect('/addapost')
+    new_post = Two(title=title, author=author, content=content)
+    db.session.add(new_post)
+    db.session.commit()
+    flash('Post added successfully.')
+    return redirect('/addapost')
+
 @app.route('/login')
 def return_to_login():
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 @app.route('/forgot-password')
 def forgot_password():
-    return render_template('forgot_password.html')
+    return render_template('auth/forgot_password.html')
 
 @app.route('/forgot-password', methods=['POST'])
 def reset_password():
@@ -90,12 +120,9 @@ def logout():
 
 @app.route("/addapost")
 def addapost():
-    return render_template('add_a_post.html')
+    return render_template('blog/add_a_post.html')
 
-app.route('/dashboard')
-def dashboard_return():
-    return render_template('dashboard.html')
-
+# Blocul if __name__ == '__main__':
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
